@@ -23,33 +23,24 @@ var server = Connect.createServer(
         
         remote_port = this.url['query']['port'];
         key = this.url['query']['key'];
-        sys.puts(key);
-       
-           // console.log(peer_id);
-        client.exists('peer:' + peer_id, function(err, does) {
-            if(!does) {
-                client.hmset('peer:' + peer_id, 'peer_id', peer_id, 'ip', ip_address, 'port', remote_port, function (err, val) {
-                    if (err) throw new Error(err);
-                });
-            }
-        });
+        //sys.puts(key);
+
 
        // client.hgetall('peer:' + peer_id,  function(err, val) {
          //   sys.puts(val.port); 
         //});
         
-        peers = [];
-        client.keys('peer:*', function(err, keys) {
-            peer_list = keys; 
-            peer_list.forEach(function(peer) {
-                client.hgetall(peer, function(err, g){
-                   peers.push(g); 
+        client.sadd(info_hash, peer_id + ',' + ip_address + ',' + remote_port,  function(err, success) {
+            sys.puts(success);
+        });
+        
+        client.smembers(info_hash, function(err, peers) {
+                  // sys.puts(peers); 
                    res.writeHead(200, {'Content-Type': 'text/plain'});
                    res.end(ben(peers));
                   sys.puts(ben(peers));
-                });
-            });           
         });
+
      
 
     }
@@ -109,20 +100,30 @@ var Peer = (function() {
 
 ben = function(peers) {
     peer_list = [];
-    peers.forEach(function(p) {
-        small_peer = new Peer(p.peer_id.toString(), p.ip.toString(), p.port.toString());
+    
+    for (var i in peers) {
+    array = peers[i].toString().split(',');
+
+       small_peer = new Peer(array[0], array[1], array[2]);
+        //sys.puts(JSON.stringify(small_peer));
         peer_list.push(small_peer);  
         //sys.puts(peer_list);
-    });
+
+    }
     
     this.p = peer_list.map(function(p) {
         return p.compact();
     }).join('');
+    new_list = [];
+    peer_list.forEach(function(p) {
+        new_list.push(p.compact());
+    });
     //sys.puts(this.p);
     //sys.puts(JSON.stringify(peer_list));
     //peer_list.push(peers[0]);
     //sys.puts(peer_list);
     hash = { interval: 5, 'tracker id': 'dkjdkdjdk', 'peers': this.p};
+   // sys.puts(peers);
     return Bencode.encode(hash);
 }
 
