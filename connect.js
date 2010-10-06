@@ -30,7 +30,7 @@ var server = Connect.createServer(
          //   sys.puts(val.port); 
         //});
         
-        client.sadd(info_hash, peer_id + ',' + ip_address + ',' + remote_port,  function(err, success) {
+        client.sadd(info_hash, key + ',' + ip_address + ',' + remote_port,  function(err, success) {
             sys.puts(success);
         });
         
@@ -50,8 +50,8 @@ var server = Connect.createServer(
 // Classes
 
 var Peer = (function() {
-    var Peer = function (peer_id, ip, port) {
-        this.peer_id = peer_id;
+    var Peer = function (key, ip, port) {
+        this.key = key;
         this.ip = ip;
         this.port = port;
     };
@@ -87,42 +87,25 @@ var Peer = (function() {
 })();
 
 
-
-
-
-
-
-
-
-
-
-
-
 ben = function(peers) {
     peer_list = [];
     
     for (var i in peers) {
-    array = peers[i].toString().split(',');
-
-       small_peer = new Peer(array[0], array[1], array[2]);
-        //sys.puts(JSON.stringify(small_peer));
+        array = peers[i].toString().split(',');
+        small_peer = new Peer(array[0], array[1], array[2]);
         peer_list.push(small_peer);  
-        //sys.puts(peer_list);
 
     }
-    
-    this.p = peer_list.map(function(p) {
+            sys.puts(JSON.stringify(peer_list));
+    new_peer_list = peer_list.map(function(p) {
         return p.compact();
     }).join('');
     new_list = [];
     peer_list.forEach(function(p) {
         new_list.push(p.compact());
     });
-    //sys.puts(this.p);
-    //sys.puts(JSON.stringify(peer_list));
-    //peer_list.push(peers[0]);
-    //sys.puts(peer_list);
-    hash = { interval: 5, 'tracker id': 'dkjdkdjdk', 'peers': this.p};
+
+    hash = { interval: 5, 'tracker id': 'dkjdkdjdk', 'peers': new_peer_list};
    // sys.puts(peers);
     return Bencode.encode(hash);
 }
