@@ -1,9 +1,9 @@
 var Connect = require('connect');
 var Bencode = require('bencode');
 var sys = require('sys');
-var colors = require('colors');
 var peer = require('./peer.js');
-var client = require("./vendor/redis-node-client/lib/redis-client").createClient();
+var redis = require("redis");
+var client = redis.createClient();
 var url = require('url');
 
 var server = Connect.createServer(
@@ -21,11 +21,11 @@ var server = Connect.createServer(
         this.url = url.parse(req.url, true);
 
         peer_id = this.url['query']['peer_id'];
-        info_hash = this.url['query']['info_hash'];
+        info_hash = encodeURIComponent(this.url['query']['info_hash']);
         remote_port = this.url['query']['port'];
         key = this.url['query']['key'];
         
-        sys.puts('ANNOUNCE'.green + ' ip_address: ' + ip_address + ', info_hash: ' + info_hash + ', peer_id: ' + peer_id);
+        sys.puts('ANNOUNCE' + ' ip_address: ' + ip_address + ', info_hash: ' + info_hash + ', peer_id: ' + peer_id);
         
         client.sadd(info_hash, key + ',' + ip_address + ',' + remote_port,  function(err, success) {
            if(success) {
@@ -49,7 +49,7 @@ format = function(peers) {
     }
     
     joined_peer_list = peer_list.join('');
-    hash = { interval: 5, 'tracker id': 'trackertracker', 'peers': joined_peer_list};
+    hash = { interval: 100, 'tracker id': 'trackertracker', 'peers': joined_peer_list};
     
     return Bencode.encode(hash);
 }
